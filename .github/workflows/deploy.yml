@@ -62,7 +62,7 @@ jobs:
           # strip_components: 3 removes 'file/file1/target/' so only the JAR is uploaded
           strip_components: 3
 
-           # 5. SSH into EC2 and Restart Application
+                # 5. SSH into EC2 and Restart Application
       - name: Restart Application on EC2
         uses: appleboy/ssh-action@master
         with:
