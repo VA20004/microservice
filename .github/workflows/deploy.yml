@@ -19,7 +19,7 @@ jobs:
         cache: maven
 
     - name: Build with Maven
-      run: mvn clean package -DskipTests
+      run: mvn clean package -DskipTests /microservice/demo-backend1
 
     - name: Copy JAR to EC2
       uses: appleboy/scp-action@master
