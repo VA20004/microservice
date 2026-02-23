@@ -81,6 +81,6 @@ jobs:
 
             # Start the new application
             # IMPORTANT: Use 'disown' to ensure the process detaches from the shell
-            nohup java -jar /home/ec2-user/app/*.jar > /home/ec2-user/app/app.log 2>&1 & 
+            nohup java -jar /home/ec2-user/app/*.jar > /home/ec2-user/app/app.log 2>&1 &
             sleep 5
             disown
