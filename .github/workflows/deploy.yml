@@ -15,14 +15,39 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          # Tell the setup-java action where to find the pom.xml for caching
           cache: maven
-          cache-dependency-path: 'file/file1/pom.xml'
+          # FIX: Removed 'microservice/' prefix as the runner is already in the repo root
+          cache-dependency-path: 'demo-backend1/pom.xml'
 
-      # 3. Build the Application from the subfolder
+      # 1. Build using the correct subfolder path
       - name: Build with Maven
-        # Use -f to point to the specific pom.xml location
-        run: mvn clean package -DskipTests -f file/file1/pom.xml
+        run: mvn clean package -DskipTests -f demo-backend1/pom.xml
+
+      # 2. Copy JAR file to EC2
+      - name: Copy JAR to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          # FIX: Path relative to repo root
+          source: "demo-backend1/target/*.jar"
+          target: "/home/ec2-user/app"
+          # FIX: strip_components: 2 removes 'demo-backend1/target/'
+          strip_components: 2
+
+      # 3. SSH and Restart
+      - name: Restart Application on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            mkdir -p /home/ec2-user/app
+            sudo pkill -f java || true
+            nohup java -jar /home/ec2-user/app/*.jar > /home/ec2-user/app/app.log 2>&1 &
+
 
       # 4. Copy JAR file to EC2 using SCP
       - name: Copy JAR to EC2
