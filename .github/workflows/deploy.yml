@@ -37,15 +37,24 @@ jobs:
           # strip_components: 3 removes 'file/file1/target/' so only the JAR is uploaded
           strip_components: 3
 
-      # 5. SSH into EC2 and Restart Application
+           # 5. SSH into EC2 and Restart Application
       - name: Restart Application on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
+          timeout: 60s  # Prevents the action from hanging indefinitely
+          command_timeout: 10m
           script: |
+            # Ensure the directory exists
+            mkdir -p /home/ec2-user/app
+            
+            # Stop existing java process
             sudo pkill -f java || true
-            # The jar is now directly in /home/ec2-user/app because of strip_components
-            nohup java -jar /home/ec2-user/app/*.jar > /home/ec2-user/app/app.log 2>&1 &
 
+            # Start the new application
+            # IMPORTANT: Use 'disown' to ensure the process detaches from the shell
+            nohup java -jar /home/ec2-user/app/*.jar > /home/ec2-user/app/app.log 2>&1 & 
+            sleep 5
+            disown
